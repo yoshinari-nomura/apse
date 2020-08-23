@@ -1,0 +1,52 @@
+#+TITLE: apse -- Handy Wi-Fi access point selector
+#+AUTHOR: Yoshinari Nomura
+#+EMAIL:
+#+DATE:
+#+OPTIONS: H:3 num:2 toc:nil
+#+OPTIONS: ^:nil @:t \n:nil ::t |:t f:t TeX:t
+#+OPTIONS: skip:nil
+#+OPTIONS: author:t
+#+OPTIONS: email:nil
+#+OPTIONS: creator:nil
+#+OPTIONS: timestamp:nil
+#+OPTIONS: timestamps:nil
+#+OPTIONS: d:nil
+#+OPTIONS: tags:t
+#+TEXT:
+#+DESCRIPTION:
+#+KEYWORDS:
+#+LANGUAGE: ja
+#+LATEX_CLASS: jsarticle
+#+LATEX_CLASS_OPTIONS: [a4j,dvipdfmx]
+# #+LATEX_HEADER: \usepackage{plain-article}
+# #+LATEX_HEADER: \renewcommand\maketitle{}
+# #+LATEX_HEADER: \pagestyle{empty}
+# #+LaTeX: \thispagestyle{empty}
+
+[[file:README-ja.org][日本語(Japanese)]]
+
+* What is apse ?
+  apse is a CLI for easy selection of Wi-Fi access points and also works
+  as an [[https://github.com/p-e-w/argos][Argos]] plugin.
+
+  apse is written in Bash script and is compatible with most Linux
+  systems that use nmcli.
+
+* Usage
+  #+begin_example
+    Usage: apse [-a | -c SSID | -l | -m | -h]
+      apse -a      ... Auto-connect to best-signal AP
+      apse -c SSID ... Connect to SSID
+      apse -l      ... List available APs
+      apse -m      ... Menu items for Argos
+      apse [-h]    ... Help
+  #+end_example
+
+* Setup
+  1) To use apse as a CLI tool, simply place =apse= file to your bin directory.
+
+  2) To use apse as an Argos plugin, place =apse= under
+     =~/.config/argos/= according to the naming conventions:
+     #+begin_example
+       cp apse ~/.config/argos/apse.30s+.sh
+     #+end_example
