@@ -89,7 +89,7 @@ function available_ap_list()
     return 1
   fi
 
-  local sort="sort -t: -k 1,1"
+  local sort="sort -u -t: -k 1,1"
   local nm="nmcli -c no -t -g"
 
   local f1="SSID,IN-USE,SIGNAL,FREQ,RATE,MODE"
