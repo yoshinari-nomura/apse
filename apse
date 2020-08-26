@@ -237,7 +237,7 @@ function argos_menu_from_available_ap_list()
     item_signal=$(printf "%-3d" $(ap_get signal "$ap"))
     item_ssid="<span color='blue'>$(ap_get ssid "$ap")</span>"
     item_freq="$(frequency_to_icon $(ap_get freq "$ap"))"
-    item_attr="bash='apse -c $(ap_get ssid "$ap")' terminal=false font=monospace"
+    item_attr="bash='apse -c $(ap_get ssid "$ap")' terminal=false font=monospace refresh=true"
 
     argos_item="$item_icon $item_freq $item_signal $item_ssid | $item_attr"
     argos_items="$argos_items$argos_item\n"
