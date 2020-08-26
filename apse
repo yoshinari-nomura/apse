@@ -52,6 +52,21 @@ function wifi_enabled()
   fi
 }
 
+# Frequency 2.4GHz or 5GHz
+#
+function frequency_to_icon()
+{
+  local freq_string="$1"
+  case "$freq_string" in
+    5*)
+      echo "<span color='green'>5G</span>"
+      ;;
+    2*)
+      echo "<span color='orange'>2G</span>"
+      ;;
+    esac
+}
+
 # Should I switch Wi-Fi access-point from CURRENT_AP to CANDIDATE_AP
 #
 function should_switch_ap()
@@ -221,10 +236,10 @@ function argos_menu_from_available_ap_list()
 
     item_signal=$(printf "%-3d" $(ap_get signal "$ap"))
     item_ssid="<span color='blue'>$(ap_get ssid "$ap")</span>"
-    item_freq="<span color='green'>$(ap_get freq "$ap")</span>"
+    item_freq="$(frequency_to_icon $(ap_get freq "$ap"))"
     item_attr="bash='apse -c $(ap_get ssid "$ap")' terminal=false font=monospace"
 
-    argos_item="$item_icon $item_signal $item_ssid $item_freq | $item_attr"
+    argos_item="$item_icon $item_freq $item_signal $item_ssid | $item_attr"
     argos_items="$argos_items$argos_item\n"
 
   done <<< "$available_ap_list"
