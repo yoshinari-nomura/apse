@@ -24,6 +24,9 @@
 # #+LaTeX: \thispagestyle{empty}
 
 * apse とは?
+  #+attr_html: :alt Argos Menu :title Argos Menu
+  [[file:images/apse-argos-screenshot.png]]
+
   apse は，Wi-Fi アクセスポイントを簡単に選択するための CLIで，
   [[https://github.com/p-e-w/argos][Argos]] のプラグインとしても動作します．
 

@@ -26,6 +26,9 @@
 [[file:README-ja.org][日本語(Japanese)]]
 
 * What is apse ?
+  #+attr_html: :alt Argos Menu :title Argos Menu
+  [[file:images/apse-argos-screenshot.png]]
+
   apse is a CLI for easy selection of Wi-Fi access points and also works
   as an [[https://github.com/p-e-w/argos][Argos]] plugin.
 
