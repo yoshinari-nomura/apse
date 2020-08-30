@@ -26,7 +26,7 @@
 #
 
 # * Known Issues:
-#   + Fails if Wi-Fi SSID involves ":".
+#   + Fails if Wi-Fi SSID involves TAB.
 
 # Usage
 #
@@ -104,8 +104,10 @@ function available_ap_list()
     return 1
   fi
 
-  local sort="sort -u -t: -k 1,1"
+  local T=$'\t'
+  local sort="sort -u -k 1,1 -t"
   local nm="nmcli -c no -t -g"
+  local unesc="sed s/^:/\t/;s/\([^\]\):/\1\t/g;s/[\]:/:/g"
 
   local f1="SSID,IN-USE,SIGNAL,FREQ,RATE,MODE"
   local f2="NAME,AUTOCONNECT"
@@ -116,10 +118,10 @@ function available_ap_list()
   # local all="-a 1"
   local all=""
 
-  join -t: -e none $all -o "$order" \
-       <($nm $f1 dev wifi list | $sort) \
-       <($nm $f2 con show | $sort) \
-    | sort -nr -t: -nr -k 2,2
+  join -t "$T" -e none $all -o "$order" \
+       <($nm $f1 dev wifi list | $unesc | $sort "$T") \
+       <($nm $f2 con show | $unesc | $sort "$T") \
+    | sort -nr -k 2,2 -t "$T"
 }
 
 # Connect to Wi-Fi AP
@@ -146,7 +148,7 @@ function ap_get()
 
   local props="in-use:1 signal:2 mode:3 freq:4 rate:5 ssid:6 ap-type:7"
   local field=$(echo "$props" | sed -n "s/.*$property:\([0-9]*\).*/\1/p")
-  local value=$(echo "$ap" | cut -d : -f $field)
+  local value=$(echo "$ap" | cut -d $'\t' -f $field)
 
   case "$property" in
     in-use)
