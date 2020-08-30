@@ -75,9 +75,9 @@ function should_switch_ap()
 #
 # Example:
 #   IN-USE,SIGNAL,MODE,FREQ,RATE,SSID,AUTOCONNECT
-#   *:77:Infra:5240 MHz:540 Mbit/s:AVAILABLE-SSID1,yes
-#    :50:Infra:2447 MHz:195 Mbit/s:AVAILABLE-SSID2,yes
-#    :39:Infra:5180 MHz:405 Mbit/s:AVAILABLE-SSID3,no
+#   * 77 Infra 5240 MHz 540 Mbit/s AVAILABLE-SSID1 yes
+#     50 Infra 2447 MHz 195 Mbit/s AVAILABLE-SSID2 yes
+#     39 Infra 5180 MHz 405 Mbit/s AVAILABLE-SSID3 no
 #
 function available_ap_list()
 {
@@ -106,7 +106,7 @@ function available_ap_list()
 # Connect to Wi-Fi AP
 #
 # arg1 (AP) is in the form:
-#   "*:77:Infra:5240 MHz:540 Mbit/s:AVAILABLE-SSID1"
+#   "* 77 Infra 5240 MHz 540 Mbit/s AVAILABLE-SSID1"
 #
 function connect_ap
 {
@@ -118,7 +118,7 @@ function connect_ap
 #
 # arg1 (PROPERTY) is one of: in-use,signal,mode,freq,rate,ssid,ap-type
 # arg2 (AP) is in the form:
-#   "*:77:Infra:5240 MHz:540 Mbit/s:EXAMPLE-SSID1:yes"
+#   "* 77 Infra 5240 MHz 540 Mbit/s EXAMPLE-SSID1 yes"
 #
 function ap_get()
 {
