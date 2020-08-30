@@ -45,26 +45,7 @@ function usage()
 #
 function wifi_enabled()
 {
-  if [ $(nmcli -c no -t radio wifi) = "enabled" ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-# Frequency 2.4GHz or 5GHz
-#
-function frequency_to_icon()
-{
-  local freq_string="$1"
-  case "$freq_string" in
-    5*)
-      echo "<span color='green'>5G</span>"
-      ;;
-    2*)
-      echo "<span color='orange'>2G</span>"
-      ;;
-    esac
+  test $(nmcli -c no -t radio wifi) = "enabled"
 }
 
 # Should I switch Wi-Fi access-point from CURRENT_AP to CANDIDATE_AP
@@ -73,8 +54,8 @@ function should_switch_ap()
 {
   local current_ap="$1"
   local candidate_ap="$2"
-  local cur=$(ap_get signal "$current_ap")
-  local can=$(ap_get signal "$candidate_ap")
+  local cur=$(ap_get "$current_ap"   signal)
+  local can=$(ap_get "$candidate_ap" signal)
 
   if (( "$cur" > 65 )); then
     echo "no"
@@ -100,17 +81,15 @@ function should_switch_ap()
 #
 function available_ap_list()
 {
-  if ! wifi_enabled; then
-    return 1
-  fi
+  wifi_enabled || return 1
 
   local T=$'\t'
-  local sort="sort -u -k 1,1 -t"
-  local nm="nmcli -c no -t -g"
+  local nmcli="nmcli -c no -t -g"
   local unesc="sed s/^:/\t/;s/\([^\]\):/\1\t/g;s/[\]:/:/g"
+  local sort="sort -u -k 1,1 -t"
 
-  local f1="SSID,IN-USE,SIGNAL,FREQ,RATE,MODE"
-  local f2="NAME,AUTOCONNECT"
+  local f_dev="SSID,IN-USE,SIGNAL,FREQ,RATE,MODE"
+  local f_con="NAME,AUTOCONNECT"
 
   # IN-USE,SIGNAL,MODE,FREQ,RATE,SSID,AUTOCONNECT
   local order="1.2,1.3,1.6,1.4,1.5,1.1,2.2"
@@ -119,8 +98,8 @@ function available_ap_list()
   local all=""
 
   join -t "$T" -e none $all -o "$order" \
-       <($nm $f1 dev wifi list | $unesc | $sort "$T") \
-       <($nm $f2 con show | $unesc | $sort "$T") \
+       <($nmcli $f_dev dev wifi list | $unesc | $sort "$T") \
+       <($nmcli $f_con con show      | $unesc | $sort "$T") \
     | sort -nr -k 2,2 -t "$T"
 }
 
@@ -131,7 +110,7 @@ function available_ap_list()
 #
 function connect_ap
 {
-  local ssid=$(ap_get ssid "$1")
+  local ssid=$(ap_get "$1" ssid)
   nmcli connection up "$ssid"
 }
 
@@ -143,8 +122,8 @@ function connect_ap
 #
 function ap_get()
 {
-  local property="$1"
-  local ap="$2"
+  local ap="$1"
+  local property="$2"
 
   local props="in-use:1 signal:2 mode:3 freq:4 rate:5 ssid:6 ap-type:7"
   local field=$(echo "$props" | sed -n "s/.*$property:\([0-9]*\).*/\1/p")
@@ -172,6 +151,29 @@ function ap_get()
   echo "$value"
 }
 
+# check AP.PROPERTY == VALUE
+function ap_eq()
+{
+  local ap="$1" property="$2" value="$3"
+
+  test "$(ap_get "$ap" "$property")" = "$value"
+}
+
+# AP.PROPERTY == VALUE ? "SUB1" : "SUB2"
+function ap_subst()
+{
+  local ap="$1" prop="$2" value="$3" sub1="$4" sub2="$5"
+
+  case "$(ap_get "$ap" "$prop")" in
+    "$value"*)
+      echo "$sub1"
+      ;;
+    *)
+      echo "$sub2"
+      ;;
+  esac
+}
+
 # Find best Wi-Fi AP significantly better than current one
 #
 function find_best_ap()
@@ -185,7 +187,7 @@ function find_best_ap()
     # the first entry should have max-signal
     best_ap=${best_ap:-"$ap"}
 
-    if [ $(ap_get in-use "$ap") = yes ]; then
+    if [ $(ap_get "$ap" in-use) = yes ]; then
       current_ap="$ap"
     fi
   done < <(available_ap_list)
@@ -200,12 +202,6 @@ function find_best_ap()
 
 function argos_menu()
 {
-  local ap_list=$(available_ap_list)
-  argos_menu_from_available_ap_list "$ap_list"
-}
-
-function argos_menu_from_available_ap_list()
-{
   local available_ap_list="$1"
   local best_ap=
   local ap=
@@ -213,42 +209,38 @@ function argos_menu_from_available_ap_list()
 
   local argos_title
   local argos_hrule="---"
-  local argos_items argos_item
+  local argos_items item
   local item_signal item_ssid item_freq item_attr
 
   while IFS= read -r ap
   do
-    if [ -z "$ap" ]; then
-      continue
-    fi
+    [ -z "$ap" ] && continue
 
     # the first entry should have max-signal
-    if [ -z "$best_ap" ]; then
-      best_ap="$ap"
-    fi
+    [ -z "$best_ap" ] && best_ap="$ap"
 
-    if [ $(ap_get in-use "$ap") = yes ]; then
+    if ap_eq "$ap" in-use yes; then
       current_ap="$ap"
       item_icon=":heavy_check_mark:"
-    elif [ $(ap_get ap-type "$ap") = auto ]; then
-      item_icon=":small_blue_diamond:"
     else
-      item_icon=":white_small_square:"
+      item_icon=$(ap_subst "$ap" ap-type auto :small_blue_diamond: :white_small_square:)
     fi
 
-    item_signal=$(printf "%-3d" $(ap_get signal "$ap"))
-    item_ssid="<span color='blue'>$(ap_get ssid "$ap")</span>"
-    item_freq="$(frequency_to_icon $(ap_get freq "$ap"))"
-    item_attr="bash='apse -c $(ap_get ssid "$ap")' terminal=false font=monospace refresh=true"
+    item=$(printf "%s <span color='%s'>%s</span> %-3d <span color='blue'>%s</span> | %s" \
+                  "$item_icon" \
+                  "$(ap_subst "$ap" freq 5 green orange)" \
+                  "$(ap_subst "$ap" freq 5 5G 2G)" \
+                  "$(ap_get "$ap" signal)" \
+                  "$(ap_get "$ap" ssid)" \
+                  "bash='apse -c $(ap_get "$ap" ssid)' terminal=false font=monospace refresh=true")
 
-    argos_item="$item_icon $item_freq $item_signal $item_ssid | $item_attr"
-    argos_items="$argos_items$argos_item\n"
+    argos_items="$argos_items$item\n"
 
   done <<< "$available_ap_list"
 
-  argos_title="$argos_title$(ap_get ssid "$current_ap")"
-  max_signal=$(ap_get signal "$best_ap")
-  cur_signal=$(ap_get signal "$current_ap")
+  argos_title="$argos_title$(ap_get "$current_ap" ssid)"
+  max_signal=$(ap_get "$best_ap"    signal)
+  cur_signal=$(ap_get "$current_ap" signal)
 
   # Switch AP if the best AP is significantly better than current AP
   # Note: bash takes null string as 0 in ((...)) notation.
@@ -298,7 +290,7 @@ fi
 
 case "$OPT_OPERATION" in
   argos)
-    argos_menu
+    argos_menu "$(available_ap_list)"
     ;;
   list)
     available_ap_list
@@ -310,7 +302,7 @@ case "$OPT_OPERATION" in
   autoconnect)
     best_ap=$(find_best_ap)
     if [ -n "$best_ap" ]; then
-      echo "Switch connection to $(ap_get ssid "$best_ap")."
+      echo "Switch connection to $(ap_get "$best_ap" ssid)."
       connect_ap "$best_ap"
     else
       echo "Not found."
