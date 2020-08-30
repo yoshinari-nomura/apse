@@ -198,6 +198,29 @@ function find_best_ap()
 }
 
 ################################################################
+## CLI menu
+
+function cli_menu ()
+{
+  local available_ap_list="$1"
+
+  while IFS= read -r ap
+  do
+    if ap_eq "$ap" ap-type unknown; then
+      continue
+    fi
+
+    printf "%1s %3d %1s %2s %s\n" \
+           "$(ap_subst "$ap" in-use yes "*" " ")" \
+           "$(ap_get "$ap" signal)" \
+           "$(ap_subst "$ap" ap-type "auto" a m)" \
+           "$(ap_subst "$ap" freq 5 "5G" "2G")" \
+           "$(ap_get "$ap" ssid)"
+
+  done <<< "$available_ap_list"
+}
+
+################################################################
 ## Argos support https://github.com/p-e-w/argos
 
 function argos_menu()
@@ -293,7 +316,7 @@ case "$OPT_OPERATION" in
     argos_menu "$(available_ap_list)"
     ;;
   list)
-    available_ap_list
+    cli_menu "$(available_ap_list)"
     ;;
   connect)
     echo "connection up $OPT_CONNECT_SSID"
