@@ -86,13 +86,13 @@ function available_ap_list()
   local T=$'\t'
   local nmcli="nmcli -c no -t -g"
   local unesc="sed s/^:/\t/;s/\([^\]\):/\1\t/g;s/[\]:/:/g"
-  local sort="sort -u -k 1,1 -t"
+  local sort="sort -k 1,1 -t"
 
-  local f_dev="SSID,IN-USE,SIGNAL,FREQ,RATE,MODE"
+  local f_dev="SSID,IN-USE,SIGNAL,FREQ,RATE,MODE,BSSID"
   local f_con="NAME,AUTOCONNECT"
 
-  # IN-USE,SIGNAL,MODE,FREQ,RATE,SSID,AUTOCONNECT
-  local order="1.2,1.3,1.6,1.4,1.5,1.1,2.2"
+  # IN-USE,SIGNAL,MODE,FREQ,RATE,SSID,AUTOCONNECT,BSSID
+  local order="1.2,1.3,1.6,1.4,1.5,1.1,2.2,1.7"
 
   # local all="-a 1"
   local all=""
@@ -125,8 +125,8 @@ function ap_get()
   local ap="$1"
   local property="$2"
 
-  local props="in-use:1 signal:2 mode:3 freq:4 rate:5 ssid:6 ap-type:7"
-  local field=$(echo "$props" | sed -n "s/.*$property:\([0-9]*\).*/\1/p")
+  local props=" in-use:1 signal:2 mode:3 freq:4 rate:5 ssid:6 ap-type:7 bssid:8"
+  local field=$(echo "$props" | sed -n "s/.* $property:\([0-9]*\).*/\1/p")
   local value=$(echo "$ap" | cut -d $'\t' -f $field)
 
   case "$property" in
@@ -210,11 +210,12 @@ function cli_menu ()
       continue
     fi
 
-    printf "%1s %3d %1s %2s %s\n" \
+    printf "%1s %3d %1s %2s %s %s\n" \
            "$(ap_subst "$ap" in-use yes "*" " ")" \
            "$(ap_get "$ap" signal)" \
            "$(ap_subst "$ap" ap-type "auto" a m)" \
            "$(ap_subst "$ap" freq 5 "5G" "2G")" \
+           "$(ap_get "$ap" bssid)" \
            "$(ap_get "$ap" ssid)"
 
   done <<< "$available_ap_list"
