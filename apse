@@ -258,7 +258,7 @@ function argos_menu()
       item_icon=$(ap_subst "$ap" ap-type auto :small_blue_diamond: :white_small_square:)
     fi
 
-    item=$(printf "%s <span color='%s'>%s</span> %-3d <span color='blue'>%s</span> | %s" \
+    item=$(printf "%s <span color='%s'>%s</span> %-3d <span color='green'>%s</span> | %s" \
                   "$item_icon" \
                   "$(ap_subst "$ap" freq 5 green orange)" \
                   "$(ap_subst "$ap" freq 5 5G 2G)" \
