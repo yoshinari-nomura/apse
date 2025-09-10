@@ -236,12 +236,20 @@ function argos_menu()
   local argos_items item
   local item_signal item_ssid item_freq item_attr
 
+  local -A SSID_LIST
+
   while IFS= read -r ap
   do
     [ -z "$ap" ] && continue
 
     # the first entry should have max-signal
     [ -z "$best_ap" ] && best_ap="$ap"
+
+    # Remove duplicated SSID from list
+    if ! ap_eq "$ap" in-use yes && [ "${SSID_LIST[$(ap_get "$ap" ssid)]}" = 1 ]; then
+      continue
+    fi
+    SSID_LIST[$(ap_get "$ap" ssid)]=1
 
     if ap_eq "$ap" in-use yes; then
       current_ap="$ap"
